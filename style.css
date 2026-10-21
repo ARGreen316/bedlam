@@ -315,3 +315,105 @@ kbd {
   border-color: #38bdf8;
   color: #fff;
 }
+/* Touch-friendly Canvas Prevention */
+#canvas-container canvas {
+  touch-action: none;
+}
+
+/* Mobile & Touch Layout */
+@media (max-width: 680px) {
+  /* Dock Main Controls to Bottom Sheet */
+  #ui-overlay {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+    max-height: 48vh;
+    overflow-y: auto;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  /* Make Buttons & Hit Targets Large Enough for Thumbs */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 14px;
+    font-size: 0.95rem;
+  }
+
+  .rot-btn {
+    min-height: 40px;
+    min-width: 40px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  /* Larger Sliders for Touch Precision */
+  input[type=range] {
+    width: 150px;
+    height: 8px;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+
+  input[type=number] {
+    min-height: 40px;
+    font-size: 0.95rem;
+    padding: 6px 8px;
+    width: 72px;
+  }
+
+  /* Full-Height Drawer for Piece Tray */
+  #tray-sidebar {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 85vw;
+    max-width: 320px;
+    max-height: 100vh;
+    border-radius: 16px 0 0 16px;
+    z-index: 20;
+  }
+
+  #tray-toggle-btn {
+    top: 16px;
+    left: -52px;
+    width: 46px;
+    height: 46px;
+    font-size: 1.3rem;
+  }
+
+  .tray-item {
+    padding: 10px 12px;
+    font-size: 0.88rem;
+  }
+
+  .order-btn {
+    min-height: 32px;
+    min-width: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* Move Piece Card to Top Left so it doesn't overlap Bottom Sheet */
+  #piece-card {
+    top: 16px;
+    left: 16px;
+    bottom: auto;
+    right: auto;
+    max-width: calc(100vw - 84px);
+  }
+
+  /* Hide Keyboard Shortcut Hint on Touch Screens */
+  .shortcuts-hint {
+    display: none;
+  }
+}

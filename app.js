@@ -31,7 +31,19 @@ const coordMatrix = new THREE.Matrix4().identity();
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(7.5, 8.5, 10.5);
+function updateCameraForViewport() {
+  if (window.innerWidth < 680) {
+    // Pull back slightly further and look a bit higher so bottom sheet doesn't cover cube
+    camera.position.set(10.0, 12.0, 14.0);
+    controls.target.set(0, 0.8, 0);
+  } else {
+    camera.position.set(7.5, 8.5, 10.5);
+    controls.target.set(0, 0, 0);
+  }
+  controls.update();
+}
+
+updateCameraForViewport();
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -447,6 +459,7 @@ window.onresize = () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  updateCameraForViewport();
 };
 
 function animate() {
