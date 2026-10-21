@@ -27,13 +27,24 @@ let solutionsBuffer = null, totalSolutions = 0, currentSolIdx = 0, previousStepC
 let pieceMeshes = [], selectedGroup = null, playTimer = null;
 const coordMatrix = new THREE.Matrix4().identity();
 
-// Three.js Scene Setup
+// 1. Scene, Camera & Renderer Setup
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.toneMapping = THREE.NoToneMapping;
+container.appendChild(renderer.domElement);
+
+// 2. Controls Setup
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// 3. Viewport & Responsive Camera Alignment
 function updateCameraForViewport() {
   if (window.innerWidth < 680) {
-    // Pull back slightly further and look a bit higher so bottom sheet doesn't cover cube
     camera.position.set(10.0, 12.0, 14.0);
     controls.target.set(0, 0.8, 0);
   } else {
@@ -42,18 +53,9 @@ function updateCameraForViewport() {
   }
   controls.update();
 }
-
 updateCameraForViewport();
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.toneMapping = THREE.NoToneMapping;
-container.appendChild(renderer.domElement);
-
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-
+// Lighting
 scene.add(new THREE.AmbientLight(0xffffff, 0.65));
 const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
 dirLight1.position.set(12, 20, 16);
@@ -74,7 +76,7 @@ const pieceGroup = new THREE.Group();
 scene.add(pieceGroup);
 const borderMat = new THREE.LineBasicMaterial({ color: 0x111827, linewidth: 2.5 });
 
-// Robust Manifold Boundary Geometry Builder
+// Manifold Boundary Geometry Builder
 function buildPieceGeometry(cubes) {
   const voxelSet = new Set(cubes.map(c => `${c.x},${c.y},${c.z}`));
   const positions = [];
@@ -99,11 +101,9 @@ function buildPieceGeometry(cubes) {
           (c.z + crn[2]) - 1.5
         ]);
 
-        // Triangle 1 (0 -> 1 -> 2)
         positions.push(...v[0], ...v[1], ...v[2]);
         normals.push(...face.norm, ...face.norm, ...face.norm);
 
-        // Triangle 2 (0 -> 2 -> 3)
         positions.push(...v[0], ...v[2], ...v[3]);
         normals.push(...face.norm, ...face.norm, ...face.norm);
       }
@@ -113,7 +113,6 @@ function buildPieceGeometry(cubes) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-
   return THREE.BufferGeometryUtils.mergeVertices(geo, 1e-4);
 }
 
@@ -208,7 +207,8 @@ function displaySolution(idx) {
   });
 
   rebuildTrayList();
-  previousStepCount = parseInt(document.getElementById('stepRange').value, 10);
+  const stepRange = document.getElementById('stepRange');
+  previousStepCount = stepRange ? parseInt(stepRange.value, 10) : 13;
   updateFilters(false);
 }
 
@@ -227,8 +227,10 @@ function checkVerticalClearance(candidateIdx, currentStep) {
 }
 
 function updateFilters(shouldAnimate = false) {
-  const maxSteps = parseInt(document.getElementById('stepRange').value, 10);
-  const maxLayerY = parseInt(document.getElementById('layerRange').value, 10);
+  const stepRange = document.getElementById('stepRange');
+  const layerRange = document.getElementById('layerRange');
+  const maxSteps = stepRange ? parseInt(stepRange.value, 10) : 13;
+  const maxLayerY = layerRange ? parseInt(layerRange.value, 10) : 3;
   const now = performance.now();
 
   pieceMeshes.forEach((group, idx) => {
@@ -267,31 +269,35 @@ function resetCoordinateSpace() {
 
 // Dynamic Rotation Button Builder
 const rotContainer = document.getElementById('rot-btn-group');
-[
-  { l: 'X▲', a: 'x', d: -90, t: 'Pitch Up (X)' },
-  { l: 'X▼', a: 'x', d: 90,  t: 'Pitch Down (Shift+X)' },
-  { l: 'Y◄', a: 'y', d: -90, t: 'Yaw Left (Shift+Y)' },
-  { l: 'Y►', a: 'y', d: 90,  t: 'Yaw Right (Y)' },
-  { l: 'Z↺', a: 'z', d: 90,  t: 'Roll Left (Shift+Z)' },
-  { l: 'Z↻', a: 'z', d: -90, t: 'Roll Right (Z)' },
-  { l: '⟲', reset: true, t: 'Reset (O)' }
-].forEach(a => {
-  const btn = document.createElement('button');
-  btn.className = 'rot-btn';
-  btn.textContent = a.l;
-  btn.title = a.t;
-  btn.onclick = a.reset ? resetCoordinateSpace : () => rotateCoordinateSpace(a.a, a.d);
-  rotContainer.appendChild(btn);
-});
+if (rotContainer) {
+  [
+    { l: 'X▲', a: 'x', d: -90, t: 'Pitch Up (X)' },
+    { l: 'X▼', a: 'x', d: 90,  t: 'Pitch Down (Shift+X)' },
+    { l: 'Y◄', a: 'y', d: -90, t: 'Yaw Left (Shift+Y)' },
+    { l: 'Y►', a: 'y', d: 90,  t: 'Yaw Right (Y)' },
+    { l: 'Z↺', a: 'z', d: 90,  t: 'Roll Left (Shift+Z)' },
+    { l: 'Z↻', a: 'z', d: -90, t: 'Roll Right (Z)' },
+    { l: '⟲', reset: true, t: 'Reset (O)' }
+  ].forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'rot-btn';
+    btn.textContent = a.l;
+    btn.title = a.t;
+    btn.onclick = a.reset ? resetCoordinateSpace : () => rotateCoordinateSpace(a.a, a.d);
+    rotContainer.appendChild(btn);
+  });
+}
 
 // Selection & Raycasting
 const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
 function selectPiece(group) {
-  if (selectedGroup) selectedGroup.userData.mesh.material.emissive.setHex(0x000000);
+  if (selectedGroup && selectedGroup.userData && selectedGroup.userData.mesh) {
+    selectedGroup.userData.mesh.material.emissive.setHex(0x000000);
+  }
   const card = document.getElementById('piece-card');
   if (!group) {
     selectedGroup = null;
-    card.style.display = 'none';
+    if (card) card.style.display = 'none';
     syncTraySelection(null);
     return;
   }
@@ -300,10 +306,14 @@ function selectPiece(group) {
 
   const pId = group.userData.pieceId;
   const meta = PIECE_METADATA[pId] || { name: `Piece ${pId}`, color: "unknown", cubes: 5 };
-  document.getElementById('card-swatch').style.backgroundColor = '#' + (RETRO_PIECE_PALETTE[pId] || 0xffffff).toString(16).padStart(6, '0');
-  document.getElementById('card-name').textContent = `Piece ${pId}: "${meta.name}"`;
-  document.getElementById('card-desc').textContent = `${meta.cubes} cubes | Group: ${meta.color.toUpperCase()}`;
-  card.style.display = 'block';
+  const swatch = document.getElementById('card-swatch');
+  const name = document.getElementById('card-name');
+  const desc = document.getElementById('card-desc');
+  
+  if (swatch) swatch.style.backgroundColor = '#' + (RETRO_PIECE_PALETTE[pId] || 0xffffff).toString(16).padStart(6, '0');
+  if (name) name.textContent = `Piece ${pId}: "${meta.name}"`;
+  if (desc) desc.textContent = `${meta.cubes} cubes | Group: ${meta.color.toUpperCase()}`;
+  if (card) card.style.display = 'block';
   syncTraySelection(pId);
 }
 
@@ -326,6 +336,7 @@ function swapPieceOrder(a, b) {
 }
 
 function rebuildTrayList() {
+  if (!trayList) return;
   trayList.innerHTML = '';
   pieceMeshes.forEach((group, idx) => {
     const pId = group.userData.pieceId;
@@ -346,7 +357,8 @@ function rebuildTrayList() {
     `;
 
     item.querySelector('span:nth-child(2)').onclick = () => {
-      if (idx >= parseInt(stepRange.value, 10)) setStep(idx + 1, true);
+      const stepRange = document.getElementById('stepRange');
+      if (stepRange && idx >= parseInt(stepRange.value, 10)) setStep(idx + 1, true);
       selectPiece(group);
     };
     const [upBtn, dnBtn] = item.querySelectorAll('.order-btn');
@@ -358,19 +370,25 @@ function rebuildTrayList() {
 }
 
 function updateTrayUI() {
-  const maxSteps = parseInt(stepRange.value, 10);
-  document.getElementById('placed-tray-count').textContent = maxSteps;
+  if (!trayList) return;
+  const stepRange = document.getElementById('stepRange');
+  const maxSteps = stepRange ? parseInt(stepRange.value, 10) : 13;
+  const countEl = document.getElementById('placed-tray-count');
+  if (countEl) countEl.textContent = maxSteps;
+
   trayList.querySelectorAll('.tray-item').forEach((item, idx) => {
     const isPlaced = idx < maxSteps;
     const isClear = isPlaced ? true : checkVerticalClearance(idx, maxSteps);
     item.classList.toggle('placed', isPlaced);
     item.classList.toggle('waiting', !isPlaced);
     item.classList.toggle('blocked', !isPlaced && !isClear);
-    item.querySelector('.tray-item-status').textContent = isPlaced ? 'Placed' : (isClear ? 'Clear' : 'Blocked');
+    const statusSpan = item.querySelector('.tray-item-status');
+    if (statusSpan) statusSpan.textContent = isPlaced ? 'Placed' : (isClear ? 'Clear' : 'Blocked');
   });
 }
 
 function syncTraySelection(selectedId) {
+  if (!trayList) return;
   trayList.querySelectorAll('.tray-item').forEach(el => {
     const active = selectedId && el.dataset.pieceId === selectedId;
     el.classList.toggle('active-selection', active);
@@ -380,25 +398,34 @@ function syncTraySelection(selectedId) {
 
 // Stepper & Playback Functions
 function setStep(newVal, shouldAnimate = true) {
+  const stepRange = document.getElementById('stepRange');
+  const stepCount = document.getElementById('stepCount');
   newVal = Math.max(1, Math.min(13, newVal));
-  const isAdvancing = newVal > parseInt(stepRange.value, 10);
-  stepRange.value = newVal;
-  stepCount.textContent = newVal;
+  const isAdvancing = stepRange ? newVal > parseInt(stepRange.value, 10) : true;
+  if (stepRange) stepRange.value = newVal;
+  if (stepCount) stepCount.textContent = newVal;
   updateFilters(shouldAnimate && isAdvancing);
 }
 
 function stopPlayback() {
-  if (playTimer !== null) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ Play'; }
+  if (playTimer !== null) { 
+    clearInterval(playTimer); 
+    playTimer = null; 
+    const playBtn = document.getElementById('playBtn');
+    if (playBtn) playBtn.textContent = '▶ Play'; 
+  }
 }
 
 function togglePlayback() {
+  const playBtn = document.getElementById('playBtn');
+  const stepRange = document.getElementById('stepRange');
   if (playTimer !== null) {
     stopPlayback();
   } else {
-    if (parseInt(stepRange.value, 10) >= 13) setStep(1, false);
-    playBtn.textContent = '⏸ Pause';
+    if (stepRange && parseInt(stepRange.value, 10) >= 13) setStep(1, false);
+    if (playBtn) playBtn.textContent = '⏸ Pause';
     playTimer = setInterval(() => {
-      const v = parseInt(stepRange.value, 10);
+      const v = stepRange ? parseInt(stepRange.value, 10) : 13;
       if (v < 13) setStep(v + 1, true); else stopPlayback();
     }, 800);
   }
@@ -406,8 +433,10 @@ function togglePlayback() {
 
 function goToSolution(newIdx) {
   stopPlayback();
+  if (totalSolutions === 0) return;
   currentSolIdx = (newIdx + totalSolutions) % totalSolutions;
-  solInput.value = currentSolIdx + 1;
+  const solInput = document.getElementById('solInput');
+  if (solInput) solInput.value = currentSolIdx + 1;
   displaySolution(currentSolIdx);
 }
 
@@ -417,10 +446,21 @@ const clickBindings = {
   nextSol: () => goToSolution(currentSolIdx + 1),
   randSol: () => goToSolution(Math.floor(Math.random() * totalSolutions)),
   playBtn: togglePlayback,
-  stepPrev: () => { stopPlayback(); setStep(parseInt(stepRange.value, 10) - 1, false); },
-  stepNext: () => { stopPlayback(); setStep(parseInt(stepRange.value, 10) + 1, true); },
+  stepPrev: () => { 
+    stopPlayback(); 
+    const stepRange = document.getElementById('stepRange');
+    setStep(stepRange ? parseInt(stepRange.value, 10) - 1 : 1, false); 
+  },
+  stepNext: () => { 
+    stopPlayback(); 
+    const stepRange = document.getElementById('stepRange');
+    setStep(stepRange ? parseInt(stepRange.value, 10) + 1 : 13, true); 
+  },
   autoSortBtn: () => displaySolution(currentSolIdx),
-  'tray-toggle-btn': () => document.getElementById('tray-sidebar').classList.toggle('collapsed')
+  'tray-toggle-btn': () => {
+    const sidebar = document.getElementById('tray-sidebar');
+    if (sidebar) sidebar.classList.toggle('collapsed');
+  }
 };
 
 Object.entries(clickBindings).forEach(([id, handler]) => {
@@ -428,20 +468,53 @@ Object.entries(clickBindings).forEach(([id, handler]) => {
   if (el) el.onclick = handler;
 });
 
-solInput.onchange = (e) => goToSolution((parseInt(e.target.value, 10) || 1) - 1);
-stepRange.oninput = (e) => { stopPlayback(); stepCount.textContent = e.target.value; updateFilters(false); };
-explodeRange.oninput = () => updateFilters(false);
-layerRange.oninput = (e) => {
-  document.getElementById('layerCount').textContent = e.target.value === "3" ? "All" : `<= ${e.target.value}`;
-  updateFilters(false);
-};
+// Input Listeners
+const solInput = document.getElementById('solInput');
+if (solInput) {
+  solInput.onchange = (e) => goToSolution((parseInt(e.target.value, 10) || 1) - 1);
+}
 
+const stepRange = document.getElementById('stepRange');
+if (stepRange) {
+  stepRange.oninput = (e) => { 
+    stopPlayback(); 
+    const stepCount = document.getElementById('stepCount');
+    if (stepCount) stepCount.textContent = e.target.value; 
+    updateFilters(false); 
+  };
+}
+
+const explodeRange = document.getElementById('explodeRange');
+if (explodeRange) {
+  explodeRange.oninput = () => updateFilters(false);
+}
+
+const layerRange = document.getElementById('layerRange');
+if (layerRange) {
+  layerRange.oninput = (e) => {
+    const layerCount = document.getElementById('layerCount');
+    if (layerCount) layerCount.textContent = e.target.value === "3" ? "All" : `<= ${e.target.value}`;
+    updateFilters(false);
+  };
+}
+
+// Keyboard Navigation
 window.onkeydown = (e) => {
-  if (document.activeElement.tagName === 'INPUT') return;
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
   const actions = {
     ' ': () => { e.preventDefault(); togglePlayback(); },
-    'ArrowRight': () => { e.preventDefault(); stopPlayback(); setStep(parseInt(stepRange.value, 10) + 1, true); },
-    'ArrowLeft': () => { e.preventDefault(); stopPlayback(); setStep(parseInt(stepRange.value, 10) - 1, false); },
+    'ArrowRight': () => { 
+      e.preventDefault(); 
+      stopPlayback(); 
+      const sr = document.getElementById('stepRange');
+      setStep(sr ? parseInt(sr.value, 10) + 1 : 13, true); 
+    },
+    'ArrowLeft': () => { 
+      e.preventDefault(); 
+      stopPlayback(); 
+      const sr = document.getElementById('stepRange');
+      setStep(sr ? parseInt(sr.value, 10) - 1 : 1, false); 
+    },
     'ArrowUp': () => { e.preventDefault(); goToSolution(currentSolIdx + 1); },
     'ArrowDown': () => { e.preventDefault(); goToSolution(currentSolIdx - 1); },
     'x': () => rotateCoordinateSpace('x', e.shiftKey ? 90 : -90),
@@ -449,7 +522,10 @@ window.onkeydown = (e) => {
     'z': () => rotateCoordinateSpace('z', e.shiftKey ? -90 : 90),
     'o': resetCoordinateSpace,
     'r': () => goToSolution(Math.floor(Math.random() * totalSolutions)),
-    't': () => document.getElementById('tray-sidebar').classList.toggle('collapsed'),
+    't': () => {
+      const sidebar = document.getElementById('tray-sidebar');
+      if (sidebar) sidebar.classList.toggle('collapsed');
+    },
     'Escape': () => selectPiece(null)
   };
   if (actions[e.key]) actions[e.key]();
@@ -466,7 +542,8 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
   const now = performance.now();
-  const explodeFactor = parseFloat(explodeRange.value);
+  const er = document.getElementById('explodeRange');
+  const explodeFactor = er ? parseFloat(er.value) : 0;
 
   pieceMeshes.forEach(group => {
     if (group.userData.animating) {
@@ -493,15 +570,25 @@ async function init() {
       solutionsBuffer = new Uint8Array(await res.arrayBuffer());
     }
     totalSolutions = Math.floor(solutionsBuffer.length / 32);
-    document.getElementById('status-msg').textContent = `${totalSolutions.toLocaleString()} solutions ready`;
-    solInput.max = totalSolutions;
-    [prevSol, nextSol, randSol, playBtn, solInput].forEach(el => el.disabled = false);
+    const statusMsg = document.getElementById('status-msg');
+    if (statusMsg) statusMsg.textContent = `${totalSolutions.toLocaleString()} solutions ready`;
+
+    const solInput = document.getElementById('solInput');
+    if (solInput) solInput.max = totalSolutions;
+
+    ['prevSol', 'nextSol', 'randSol', 'playBtn', 'solInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = false;
+    });
+
     goToSolution(0);
     animate();
   } catch (err) {
     const s = document.getElementById('status-msg');
-    s.style.color = '#ef4444';
-    s.textContent = `Could not load dataset. Check server or solutions_data.js.`;
+    if (s) {
+      s.style.color = '#ef4444';
+      s.textContent = `Could not load dataset. Check server or solutions_data.js.`;
+    }
   }
 }
 
