@@ -2,74 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Bedlam Cube 3D Solution Visualizer</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=4">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
   <script src="solutions_data.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 </head>
 <body>
 
 <div id="ui-overlay">
-  <h2>Bedlam Cube Visualizer</h2>
+  <div class="sheet-header" id="sheetHeader">
+    <h2>Bedlam Cube Visualizer</h2>
+    <button id="sheetToggleBtn" class="sheet-toggle" aria-label="Toggle Controls">▾</button>
+  </div>
   <div id="status-msg">Initializing...</div>
 
-  <div class="control-row">
-    <span class="label">Solution:</span>
-    <div class="btn-group">
-      <button id="prevSol" disabled title="Previous (Down)">◀</button>
-      <input type="number" id="solInput" min="1" max="19186" value="1" disabled>
-      <button id="nextSol" disabled title="Next (Up)">▶</button>
-      <button id="randSol" disabled title="Random (R)">🎲</button>
+  <div id="controls-body">
+    <div class="control-row">
+      <span class="label">Solution:</span>
+      <div class="btn-group">
+        <button id="prevSol" disabled title="Previous (Down)">◀</button>
+        <input type="number" id="solInput" min="1" max="19186" value="1" disabled>
+        <button id="nextSol" disabled title="Next (Up)">▶</button>
+        <button id="randSol" disabled title="Random (R)">🎲</button>
+      </div>
     </div>
-  </div>
 
-  <div class="control-row" style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 8px;">
-    <span class="label">Re-orient:</span>
-    <div class="btn-group" id="rot-btn-group"></div>
-  </div>
-
-  <div class="control-row">
-    <span class="label">Step (From Top):</span>
-    <div class="btn-group">
-      <button id="playBtn" disabled title="Play / Pause (Spacebar)">▶ Play</button>
-      <button id="stepPrev" title="Previous Step (Left)">-</button>
-      <button id="stepNext" title="Next Step (Right)">+</button>
+    <div class="control-row" style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 8px;">
+      <span class="label">Re-orient:</span>
+      <div class="btn-group" id="rot-btn-group"></div>
     </div>
-  </div>
 
-  <div class="control-row">
-    <span class="label">Placed Pieces:</span>
-    <input type="range" id="stepRange" min="1" max="13" value="13">
-    <span id="stepCount" style="width: 24px; text-align: right; font-weight: 600;">13</span>
-  </div>
-
-  <div class="control-row">
-    <span class="label">Assembly Order:</span>
-    <div class="btn-group">
-      <button id="autoSortBtn" class="accent-btn" title="Recalculate top-down vertical clearance">⚡ Auto-Clearance</button>
+    <div class="control-row">
+      <span class="label">Step (From Top):</span>
+      <div class="btn-group">
+        <button id="playBtn" disabled title="Play / Pause (Spacebar)">▶ Play</button>
+        <button id="stepPrev" title="Previous Step (Left)">-</button>
+        <button id="stepNext" title="Next Step (Right)">+</button>
+      </div>
     </div>
-  </div>
 
-  <div class="control-row">
-    <span class="label">Explode View:</span>
-    <input type="range" id="explodeRange" min="0" max="1.5" step="0.05" value="0">
-  </div>
+    <div class="control-row">
+      <span class="label">Placed Pieces:</span>
+      <input type="range" id="stepRange" min="1" max="13" value="13">
+      <span id="stepCount" style="width: 24px; text-align: right; font-weight: 600;">13</span>
+    </div>
 
-  <div class="control-row">
-    <span class="label">Height Slice (Y):</span>
-    <input type="range" id="layerRange" min="0" max="3" value="3">
-    <span id="layerCount" style="width: 24px; text-align: right; font-weight: 600;">All</span>
-  </div>
+    <div class="control-row">
+      <span class="label">Assembly Order:</span>
+      <div class="btn-group">
+        <button id="autoSortBtn" class="accent-btn" title="Recalculate top-down vertical clearance">⚡ Auto-Clearance</button>
+      </div>
+    </div>
 
-  <div class="shortcuts-hint">
-    <kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd> Re-orient &nbsp;|&nbsp; <kbd>O</kbd> Reset &nbsp;|&nbsp; <kbd>Space</kbd> Play
+    <div class="control-row">
+      <span class="label">Explode View:</span>
+      <input type="range" id="explodeRange" min="0" max="1.5" step="0.05" value="0">
+    </div>
+
+    <div class="control-row">
+      <span class="label">Height Slice (Y):</span>
+      <input type="range" id="layerRange" min="0" max="3" value="3">
+      <span id="layerCount" style="width: 24px; text-align: right; font-weight: 600;">All</span>
+    </div>
+
+    <div class="shortcuts-hint">
+      <kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd> Re-orient &nbsp;|&nbsp; <kbd>O</kbd> Reset &nbsp;|&nbsp; <kbd>Space</kbd> Play
+    </div>
   </div>
 </div>
 
-<div id="tray-sidebar">
+<div id="tray-sidebar" class="collapsed">
   <button id="tray-toggle-btn" title="Toggle Tray (T)">🧩</button>
   <div class="tray-header">
     <h3>Physical Box Build</h3>
@@ -85,6 +90,6 @@
 
 <div id="canvas-container"></div>
 
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

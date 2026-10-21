@@ -13,6 +13,10 @@ body {
   display: block;
 }
 
+#canvas-container canvas {
+  touch-action: none;
+}
+
 #ui-overlay {
   position: absolute;
   top: 16px;
@@ -25,6 +29,16 @@ body {
   border: 1px solid rgba(255,255,255,0.12);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   width: 320px;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sheet-toggle {
+  display: none;
 }
 
 #piece-card {
@@ -182,7 +196,7 @@ kbd {
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 32px);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #tray-sidebar.collapsed {
@@ -315,49 +329,47 @@ kbd {
   border-color: #38bdf8;
   color: #fff;
 }
-/* Touch & Canvas defaults */
-#canvas-container canvas {
-  touch-action: none;
-}
 
-/* Desktop Defaults for Sheet Elements */
-.sheet-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.sheet-toggle {
-  display: none;
-}
-
-/* Mobile & Small Screens */
+/* ====================================================
+   Mobile & Small Screen Optimizations
+==================================================== */
 @media (max-width: 680px) {
-  /* Dock Main Controls to the Bottom as a Card/Sheet */
-  #ui-overlay {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    box-sizing: border-box;
-    border-radius: 18px 18px 0 0;
-    padding: 12px 18px calc(14px + env(safe-area-inset-bottom, 0px));
-    max-height: 44vh;
-    overflow-y: auto;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  #canvas-container {
+    height: 100vh;
+    height: 100dvh;
   }
 
-  /* Collapsed state for mobile: shrinks down to a slim top bar */
+  /* Dock Controls as a Bottom Sheet */
+  #ui-overlay {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    border-radius: 20px 20px 0 0;
+    padding: 14px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+    max-height: 45vh;
+    max-height: 45dvh;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-bottom: none;
+    z-index: 30;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* When collapsed, only the header remains visible */
   #ui-overlay.sheet-collapsed {
-    transform: translateY(calc(100% - 48px - env(safe-area-inset-bottom, 0px)));
+    transform: translateY(calc(100% - 50px - env(safe-area-inset-bottom, 0px)));
     overflow: hidden;
   }
 
   .sheet-header {
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding-bottom: 4px;
   }
 
@@ -367,25 +379,22 @@ kbd {
   }
 
   .sheet-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
-    padding: 0;
-    font-size: 1.1rem;
+    display: inline-block;
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: #38bdf8;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 4px;
+    min-width: unset;
+    min-height: unset;
   }
 
   #ui-overlay.sheet-collapsed .sheet-toggle {
     transform: rotate(180deg);
   }
 
-  /* Large thumb targets */
+  /* Larger touch targets */
   button {
     min-height: 40px;
     min-width: 40px;
@@ -402,32 +411,41 @@ kbd {
     width: 140px;
   }
 
-  /* Piece tray drawer stays neatly offscreen until tapped */
+  /* Full screen-height drawer strictly off-screen by default */
   #tray-sidebar {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 80vw;
-    max-width: 300px;
-    max-height: 100vh;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 280px !important;
+    max-width: 82vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
     border-radius: 16px 0 0 16px;
-    z-index: 25;
+    z-index: 50;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  #tray-sidebar.collapsed {
+    transform: translateX(100%) !important;
   }
 
   #tray-toggle-btn {
     top: 14px;
-    left: -48px;
-    width: 42px;
-    height: 42px;
+    left: -50px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
   }
 
-  /* Piece card pins cleanly out of the way */
   #piece-card {
-    top: 12px;
-    left: 12px;
-    bottom: auto;
-    right: auto;
-    max-width: calc(100vw - 76px);
+    top: 12px !important;
+    left: 12px !important;
+    bottom: auto !important;
+    right: auto !important;
+    max-width: calc(100vw - 80px);
+    z-index: 20;
   }
 
   .shortcuts-hint {

@@ -38,20 +38,25 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.toneMapping = THREE.NoToneMapping;
 container.appendChild(renderer.domElement);
 
-// 2. Controls Setup
+// 2. Controls Setup (Must initialize BEFORE updateCameraForViewport)
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// 3. Viewport & Responsive Camera Alignment
+// 3. Viewport & Responsive Camera Alignment (Uses setViewOffset to elevate 3D view on mobile)
 function updateCameraForViewport() {
-  if (window.innerWidth < 680) {
-    // Pull camera back and nudge the orbit center down/cube up
-    camera.position.set(11.0, 13.0, 15.0);
-    controls.target.set(0, 1.2, 0); // Lifts the cube visually into the top half
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  if (w < 680) {
+    camera.position.set(11.0, 11.5, 14.5);
+    controls.target.set(0, 0, 0);
+    camera.setViewOffset(w, h, 0, -Math.round(h * 0.18), w, h);
   } else {
     camera.position.set(7.5, 8.5, 10.5);
     controls.target.set(0, 0, 0);
+    camera.clearViewOffset();
   }
+  camera.updateProjectionMatrix();
   controls.update();
 }
 updateCameraForViewport();
@@ -326,15 +331,6 @@ window.addEventListener('pointerdown', (e) => {
   const hits = raycaster.intersectObjects(pieceMeshes.filter(g => g.visible).map(g => g.userData.mesh), false);
   selectPiece(hits.length > 0 ? hits[0].object.userData.parentGroup : null);
 });
-const sheetHeader = document.getElementById('sheetHeader');
-const uiOverlay = document.getElementById('ui-overlay');
-if (sheetHeader && uiOverlay) {
-  sheetHeader.addEventListener('click', () => {
-    if (window.innerWidth < 680) {
-      uiOverlay.classList.toggle('sheet-collapsed');
-    }
-  });
-}
 
 // Tray Sidebar Implementation
 const trayList = document.getElementById('tray-list');
@@ -478,6 +474,17 @@ Object.entries(clickBindings).forEach(([id, handler]) => {
   if (el) el.onclick = handler;
 });
 
+// Mobile Bottom Sheet Collapse Listener
+const sheetHeader = document.getElementById('sheetHeader');
+const uiOverlay = document.getElementById('ui-overlay');
+if (sheetHeader && uiOverlay) {
+  sheetHeader.addEventListener('click', () => {
+    if (window.innerWidth < 680) {
+      uiOverlay.classList.toggle('sheet-collapsed');
+    }
+  });
+}
+
 // Input Listeners
 const solInput = document.getElementById('solInput');
 if (solInput) {
@@ -543,7 +550,6 @@ window.onkeydown = (e) => {
 
 window.onresize = () => {
   camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   updateCameraForViewport();
 };
