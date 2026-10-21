@@ -315,14 +315,24 @@ kbd {
   border-color: #38bdf8;
   color: #fff;
 }
-/* Touch-friendly Canvas Prevention */
+/* Touch & Canvas defaults */
 #canvas-container canvas {
   touch-action: none;
 }
 
-/* Mobile & Touch Layout */
+/* Desktop Defaults for Sheet Elements */
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sheet-toggle {
+  display: none;
+}
+
+/* Mobile & Small Screens */
 @media (max-width: 680px) {
-  /* Dock Main Controls to Bottom Sheet */
+  /* Dock Main Controls to the Bottom as a Card/Sheet */
   #ui-overlay {
     top: auto;
     bottom: 0;
@@ -330,89 +340,96 @@ kbd {
     right: 0;
     width: 100%;
     box-sizing: border-box;
-    border-radius: 16px 16px 0 0;
-    padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
-    max-height: 48vh;
+    border-radius: 18px 18px 0 0;
+    padding: 12px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+    max-height: 44vh;
     overflow-y: auto;
     border-left: none;
     border-right: none;
     border-bottom: none;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Make Buttons & Hit Targets Large Enough for Thumbs */
+  /* Collapsed state for mobile: shrinks down to a slim top bar */
+  #ui-overlay.sheet-collapsed {
+    transform: translateY(calc(100% - 48px - env(safe-area-inset-bottom, 0px)));
+    overflow: hidden;
+  }
+
+  .sheet-header {
+    cursor: pointer;
+    padding-bottom: 4px;
+  }
+
+  .sheet-header h2 {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .sheet-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    font-size: 1.1rem;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+  }
+
+  #ui-overlay.sheet-collapsed .sheet-toggle {
+    transform: rotate(180deg);
+  }
+
+  /* Large thumb targets */
   button {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 8px 14px;
-    font-size: 0.95rem;
+    min-height: 40px;
+    min-width: 40px;
+    padding: 6px 12px;
   }
 
   .rot-btn {
-    min-height: 40px;
-    min-width: 40px;
-    padding: 6px 10px;
-    font-size: 0.85rem;
+    min-height: 38px;
+    min-width: 38px;
+    padding: 4px 8px;
   }
 
-  /* Larger Sliders for Touch Precision */
   input[type=range] {
-    width: 150px;
-    height: 8px;
+    width: 140px;
   }
 
-  input[type=range]::-webkit-slider-thumb {
-    width: 24px;
-    height: 24px;
-  }
-
-  input[type=number] {
-    min-height: 40px;
-    font-size: 0.95rem;
-    padding: 6px 8px;
-    width: 72px;
-  }
-
-  /* Full-Height Drawer for Piece Tray */
+  /* Piece tray drawer stays neatly offscreen until tapped */
   #tray-sidebar {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 85vw;
-    max-width: 320px;
+    width: 80vw;
+    max-width: 300px;
     max-height: 100vh;
     border-radius: 16px 0 0 16px;
-    z-index: 20;
+    z-index: 25;
   }
 
   #tray-toggle-btn {
-    top: 16px;
-    left: -52px;
-    width: 46px;
-    height: 46px;
-    font-size: 1.3rem;
+    top: 14px;
+    left: -48px;
+    width: 42px;
+    height: 42px;
   }
 
-  .tray-item {
-    padding: 10px 12px;
-    font-size: 0.88rem;
-  }
-
-  .order-btn {
-    min-height: 32px;
-    min-width: 32px;
-    font-size: 0.8rem;
-  }
-
-  /* Move Piece Card to Top Left so it doesn't overlap Bottom Sheet */
+  /* Piece card pins cleanly out of the way */
   #piece-card {
-    top: 16px;
-    left: 16px;
+    top: 12px;
+    left: 12px;
     bottom: auto;
     right: auto;
-    max-width: calc(100vw - 84px);
+    max-width: calc(100vw - 76px);
   }
 
-  /* Hide Keyboard Shortcut Hint on Touch Screens */
   .shortcuts-hint {
     display: none;
   }

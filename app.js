@@ -45,8 +45,9 @@ controls.enableDamping = true;
 // 3. Viewport & Responsive Camera Alignment
 function updateCameraForViewport() {
   if (window.innerWidth < 680) {
-    camera.position.set(10.0, 12.0, 14.0);
-    controls.target.set(0, 0.8, 0);
+    // Pull camera back and nudge the orbit center down/cube up
+    camera.position.set(11.0, 13.0, 15.0);
+    controls.target.set(0, 1.2, 0); // Lifts the cube visually into the top half
   } else {
     camera.position.set(7.5, 8.5, 10.5);
     controls.target.set(0, 0, 0);
@@ -325,6 +326,15 @@ window.addEventListener('pointerdown', (e) => {
   const hits = raycaster.intersectObjects(pieceMeshes.filter(g => g.visible).map(g => g.userData.mesh), false);
   selectPiece(hits.length > 0 ? hits[0].object.userData.parentGroup : null);
 });
+const sheetHeader = document.getElementById('sheetHeader');
+const uiOverlay = document.getElementById('ui-overlay');
+if (sheetHeader && uiOverlay) {
+  sheetHeader.addEventListener('click', () => {
+    if (window.innerWidth < 680) {
+      uiOverlay.classList.toggle('sheet-collapsed');
+    }
+  });
+}
 
 // Tray Sidebar Implementation
 const trayList = document.getElementById('tray-list');
