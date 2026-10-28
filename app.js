@@ -44,19 +44,21 @@ controls.enableDamping = true;
 
 // 3. Viewport & Responsive Camera Alignment (Uses setViewOffset to elevate 3D view on mobile)
 function updateCameraForViewport() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const w = container.clientWidth || window.innerWidth;
+  const h = container.clientHeight || window.innerHeight;
 
-  if (w < 680) {
-    camera.position.set(11.0, 11.5, 14.5);
+  camera.aspect = w / h;
+  camera.clearViewOffset();
+
+  if (window.innerWidth < 680) {
+    camera.position.set(9.0, 10.0, 12.5);
     controls.target.set(0, 0, 0);
-    camera.setViewOffset(w, h, 0, -Math.round(h * 0.18), w, h);
   } else {
     camera.position.set(7.5, 8.5, 10.5);
     controls.target.set(0, 0, 0);
-    camera.clearViewOffset();
   }
   camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
   controls.update();
 }
 updateCameraForViewport();
@@ -549,8 +551,6 @@ window.onkeydown = (e) => {
 };
 
 window.onresize = () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  renderer.setSize(window.innerWidth, window.innerHeight);
   updateCameraForViewport();
 };
 

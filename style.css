@@ -331,87 +331,81 @@ kbd {
 }
 
 /* ====================================================
-   Mobile & Small Screen Optimizations
+   Mobile Split-Screen Layout (Top 52% Canvas, Bottom 48% Controls)
 ==================================================== */
 @media (max-width: 680px) {
-  #canvas-container {
+  body {
+    display: flex;
+    flex-direction: column;
     height: 100vh;
     height: 100dvh;
-  }
-
-  /* Dock Controls as a Bottom Sheet */
-  #ui-overlay {
-    top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box;
-    border-radius: 20px 20px 0 0;
-    padding: 14px 18px calc(16px + env(safe-area-inset-bottom, 0px));
-    max-height: 45vh;
-    max-height: 45dvh;
-    overflow-y: auto;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-bottom: none;
-    z-index: 30;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  /* When collapsed, only the header remains visible */
-  #ui-overlay.sheet-collapsed {
-    transform: translateY(calc(100% - 50px - env(safe-area-inset-bottom, 0px)));
     overflow: hidden;
   }
 
-  .sheet-header {
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 4px;
+  /* 1. Canvas pinned to top half */
+  #canvas-container {
+    height: 52vh !important;
+    height: 52dvh !important;
+    width: 100vw !important;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
   }
 
-  .sheet-header h2 {
-    font-size: 1rem;
-    margin: 0;
+  #canvas-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+
+  /* 2. Controls pinned directly below the canvas */
+  #ui-overlay {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 48vh !important;
+    height: 48dvh !important;
+    max-height: 48dvh !important;
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+    box-sizing: border-box;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    z-index: 10;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
   }
 
   .sheet-toggle {
-    display: inline-block;
-    background: transparent;
-    border: none;
-    color: #38bdf8;
-    font-size: 1.2rem;
-    font-weight: bold;
-    padding: 0 4px;
-    min-width: unset;
-    min-height: unset;
+    display: none !important;
   }
 
-  #ui-overlay.sheet-collapsed .sheet-toggle {
-    transform: rotate(180deg);
-  }
-
-  /* Larger touch targets */
+  /* 3. Button sizing for thumbs */
   button {
-    min-height: 40px;
-    min-width: 40px;
-    padding: 6px 12px;
+    min-height: 38px;
+    min-width: 38px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
   }
 
   .rot-btn {
-    min-height: 38px;
-    min-width: 38px;
-    padding: 4px 8px;
+    min-height: 34px;
+    min-width: 34px;
+    padding: 4px 6px;
+    font-size: 0.8rem;
   }
 
   input[type=range] {
-    width: 140px;
+    width: 130px;
   }
 
-  /* Full screen-height drawer strictly off-screen by default */
+  /* 4. Piece tray: slides over from the right */
   #tray-sidebar {
     top: 0 !important;
     bottom: 0 !important;
@@ -432,19 +426,20 @@ kbd {
   }
 
   #tray-toggle-btn {
-    top: 14px;
-    left: -50px;
-    width: 44px;
-    height: 44px;
-    font-size: 1.2rem;
+    top: 12px;
+    left: -48px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.15rem;
   }
 
+  /* 5. Piece card pins to top-left of canvas */
   #piece-card {
     top: 12px !important;
     left: 12px !important;
     bottom: auto !important;
     right: auto !important;
-    max-width: calc(100vw - 80px);
+    max-width: calc(100vw - 72px);
     z-index: 20;
   }
 
